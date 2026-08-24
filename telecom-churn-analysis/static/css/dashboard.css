@@ -1,0 +1,26 @@
+.kpi-card {
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card .card-body {
+    padding: 1.5rem;
+    z-index: 2;
+    position: relative;
+}
+
+.kpi-icon {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 5rem;
+    opacity: 0.2;
+    transform: rotate(-15deg);
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}

@@ -1,0 +1,112 @@
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --dark-color: #5a5c69;
+    --light-bg: #f8f9fc;
+    --sidebar-bg: #4e73df;
+    --sidebar-text: #fff;
+}
+
+[data-bs-theme="dark"] {
+    --primary-color: #375a7f;
+    --light-bg: #222;
+    --sidebar-bg: #1a1a1a;
+    --sidebar-text: #ddd;
+}
+
+body {
+    background-color: var(--light-bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--dark-color);
+}
+
+/* Wrapper and Sidebar */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    min-height: 100vh;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    transition: all 0.3s;
+}
+
+#sidebar.active {
+    margin-left: -250px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+#sidebar ul li a:hover, #sidebar ul li.active > a {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#sidebar ul li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Content Area */
+#content {
+    width: 100%;
+    min-height: 100vh;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-navbar {
+    background: #fff;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    padding: 10px 20px;
+}
+
+[data-bs-theme="dark"] .top-navbar {
+    background: #2b2b2b;
+}
+
+/* General Utilities */
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+[data-bs-theme="dark"] .card {
+    background: #333;
+    color: #eee;
+}
+
+[data-bs-theme="dark"] .card-header {
+    border-bottom: 1px solid #444;
+}
+
+[data-bs-theme="dark"] .table {
+    color: #ddd;
+}

@@ -1,0 +1,17 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+pandas
+numpy
+scikit-learn
+openpyxl
+joblib
+matplotlib
+seaborn
+pymysql
+xgboost
+email-validator
+Werkzeug
+python-dotenv
+gunicorn

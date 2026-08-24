@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Telecom Churn Analysis{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-network-wired"></i> Telco Analytics</h3>
+            </div>
+            <ul class="list-unstyled components">
+                <li class="{% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                    <a href="{{ url_for('dashboard.index') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                </li>
+                <li class="{% if request.endpoint == 'data.upload' %}active{% endif %}">
+                    <a href="{{ url_for('data.upload') }}"><i class="fas fa-file-upload"></i> Data Upload</a>
+                </li>
+                <li class="{% if request.endpoint == 'data.explorer' %}active{% endif %}">
+                    <a href="{{ url_for('data.explorer') }}"><i class="fas fa-table"></i> Data Explorer</a>
+                </li>
+                <li class="{% if request.endpoint == 'analysis.index' %}active{% endif %}">
+                    <a href="{{ url_for('analysis.index') }}"><i class="fas fa-chart-pie"></i> Churn Analysis</a>
+                </li>
+                <li class="{% if request.endpoint == 'prediction.segments' %}active{% endif %}">
+                    <a href="{{ url_for('prediction.segments') }}"><i class="fas fa-users"></i> Customer Segments</a>
+                </li>
+                <li class="{% if request.endpoint == 'prediction.index' %}active{% endif %}">
+                    <a href="{{ url_for('prediction.index') }}"><i class="fas fa-brain"></i> Prediction</a>
+                </li>
+                <li class="{% if request.endpoint == 'insights.index' %}active{% endif %}">
+                    <a href="{{ url_for('insights.index') }}"><i class="fas fa-lightbulb"></i> Business Insights</a>
+                </li>
+                <li class="{% if request.endpoint == 'reports.index' %}active{% endif %}">
+                    <a href="{{ url_for('reports.index') }}"><i class="fas fa-file-alt"></i> Reports</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg top-navbar">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                        <i class="fas fa-bars"></i>
+                    </button>
+
+                    <div class="ms-auto d-flex align-items-center">
+                        <button id="themeToggle" class="btn btn-outline-secondary me-3">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle fa-lg"></i> {{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid pt-4">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

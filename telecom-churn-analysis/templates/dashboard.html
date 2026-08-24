@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Telecom Churn Analysis{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt"></i> Executive Dashboard</h2>
+</div>
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card kpi-card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Customers</h6>
+                <h3 class="card-text">{{ kpis.total_customers }}</h3>
+                <i class="fas fa-users kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card kpi-card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Churned Customers</h6>
+                <h3 class="card-text">{{ kpis.churned }}</h3>
+                <i class="fas fa-user-minus kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card kpi-card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Active Customers</h6>
+                <h3 class="card-text">{{ kpis.active }}</h3>
+                <i class="fas fa-user-check kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card kpi-card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Churn Rate</h6>
+                <h3 class="card-text">{{ kpis.churn_rate }}</h3>
+                <i class="fas fa-percentage kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card kpi-card bg-secondary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Avg Monthly Charges</h6>
+                <h3 class="card-text">${{ kpis.avg_charges }}</h3>
+                <i class="fas fa-dollar-sign kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card kpi-card bg-secondary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Avg Tenure (Months)</h6>
+                <h3 class="card-text">{{ kpis.avg_tenure }}</h3>
+                <i class="fas fa-clock kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card kpi-card bg-warning text-dark">
+            <div class="card-body">
+                <h6 class="card-title">High Risk Customers</h6>
+                <h3 class="card-text">{{ kpis.high_risk }}</h3>
+                <i class="fas fa-exclamation-triangle kpi-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Churn Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="churnDistChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Churn by Contract Type</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="contractChurnChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Churn by Tenure Group</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="tenureChurnChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Average Monthly Charges</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chargesChurnChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

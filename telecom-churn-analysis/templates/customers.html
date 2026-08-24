@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Telecom Churn Analysis{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-users text-warning"></i> Predicted Customers</h2>
+        <p class="text-muted">View customers and their predicted churn risk.</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="dropdown d-inline-block me-2">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="riskFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                Filter by Risk
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="riskFilter">
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers') }}">All Risks</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='HIGH') }}">High Risk</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='MEDIUM') }}">Medium Risk</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='LOW') }}">Low Risk</a></li>
+            </ul>
+        </div>
+        <a href="{{ url_for('reports.export_excel') }}" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Export
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            {% if filter_risk %}
+                {{ filter_risk }} Risk Customers
+            {% else %}
+                All Predicted Customers (Limit 100)
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Tenure</th>
+                        <th>Contract</th>
+                        <th>Monthly $</th>
+                        <th>Internet Service</th>
+                        <th>Probability</th>
+                        <th>Risk Level</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer, prediction in results %}
+                    <tr>
+                        <td class="fw-bold">{{ customer.customer_id }}</td>
+                        <td>{{ customer.tenure }}</td>
+                        <td>{{ customer.contract }}</td>
+                        <td>${{ customer.monthly_charges|round(2) }}</td>
+                        <td>{{ customer.internet_service }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">{{ prediction.churn_probability }}%</span>
+                                <div class="progress flex-grow-1" style="height: 5px;">
+                                    {% if prediction.risk_level == 'HIGH' %}
+                                        {% set bg_class = 'bg-danger' %}
+                                    {% elif prediction.risk_level == 'MEDIUM' %}
+                                        {% set bg_class = 'bg-warning' %}
+                                    {% else %}
+                                        {% set bg_class = 'bg-success' %}
+                                    {% endif %}
+                                    <div class="progress-bar {{ bg_class }}" role="progressbar" style="width: {{ prediction.churn_probability }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if prediction.risk_level == 'HIGH' %}
+                                <span class="badge bg-danger">HIGH</span>
+                            {% elif prediction.risk_level == 'MEDIUM' %}
+                                <span class="badge bg-warning text-dark">MEDIUM</span>
+                            {% else %}
+                                <span class="badge bg-success">LOW</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">Review</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">No predictions found. Please run predictions first.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
