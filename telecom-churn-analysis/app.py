@@ -41,9 +41,22 @@ def create_app(config_class=Config):
 
     @app.cli.command("init-db")
     def init_db_command():
-        """Clear the existing data and create new tables."""
+        """Create new tables."""
+        from models.customer import Customer
+        from models.dataset import Dataset
+        from models.prediction import Prediction
+        from models.model_result import ModelResult
+
         db.create_all()
         print("Initialized the database.")
+
+    # Ensure tables are created when running normally as well
+    with app.app_context():
+        from models.customer import Customer
+        from models.dataset import Dataset
+        from models.prediction import Prediction
+        from models.model_result import ModelResult
+        db.create_all()
 
     return app
 

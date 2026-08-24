@@ -62,5 +62,42 @@ document.addEventListener("DOMContentLoaded", function() {
                 },
                 options: commonOptions
             });
+
+            // Tenure vs Monthly Charges
+            if (document.getElementById('tenureChargesChart') && data.avg_charges_tenure) {
+                new Chart(document.getElementById('tenureChargesChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.avg_charges_tenure.labels,
+                        datasets: [
+                            {
+                                label: data.avg_charges_tenure.datasets[0].label,
+                                data: data.avg_charges_tenure.datasets[0].data,
+                                borderColor: 'rgba(54, 162, 235, 0.8)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                fill: true,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ₹' + context.parsed.y;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
         });
 });

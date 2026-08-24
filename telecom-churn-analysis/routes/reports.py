@@ -7,8 +7,14 @@ reports_bp = Blueprint('reports', __name__)
 
 @reports_bp.route('/reports')
 def index():
+    from services.churn_analyzer import ChurnAnalyzer
+    from services.recommendation_engine import RecommendationEngine
+
     model_results = ModelResult.query.all()
-    return render_template('reports.html', models=model_results)
+    kpis = ChurnAnalyzer.get_dashboard_kpis()
+    insights = RecommendationEngine.get_insights()
+
+    return render_template('reports.html', models=model_results, kpis=kpis, insights=insights)
 
 @reports_bp.route('/reports/export')
 def export_excel():

@@ -23,14 +23,20 @@
                         <div class="card h-100 border-left-{{ insight.type }}">
                             <div class="card-body">
                                 <h6 class="text-{{ insight.type }} text-uppercase mb-2"><i class="fas fa-info-circle"></i> {{ insight.title }}</h6>
+                                {% if insight.metric %}
+                                <div class="h4 mb-3">{{ insight.metric }}</div>
+                                {% endif %}
                                 <p class="mb-2 text-dark"><strong>Observation:</strong> {{ insight.observation }}</p>
                                 <p class="mb-0 text-muted"><i class="fas fa-arrow-right text-{{ insight.type }}"></i> <strong>Recommended Action:</strong> {{ insight.action }}</p>
                             </div>
                         </div>
                     </div>
                     {% else %}
-                    <div class="col-12 text-center py-4">
-                        <p class="text-muted">Not enough data to generate insights. Please upload data and ensure predictions are available.</p>
+                    <div class="col-12 text-center py-5">
+                        <h4 class="text-muted mb-3"><i class="fas fa-database fa-2x"></i></h4>
+                        <h5>No customer data available</h5>
+                        <p class="text-muted">Please upload a dataset to generate business insights.</p>
+                        <a href="{{ url_for('data.upload') }}" class="btn btn-outline-primary mt-2">Go to Data Upload</a>
                     </div>
                     {% endfor %}
                 </div>
@@ -39,6 +45,7 @@
     </div>
 </div>
 
+{% if insights %}
 <div class="row">
     <div class="col-12">
         <div class="card shadow-sm">
@@ -78,7 +85,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="5" class="text-center py-4">No recommendations available at this time.</td>
+                                <td colspan="5" class="text-center py-4">No recommendations available at this time. Train a model and run predictions first.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -88,11 +95,13 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <style>
     .border-left-primary { border-left: 4px solid #0d6efd !important; }
     .border-left-danger { border-left: 4px solid #dc3545 !important; }
     .border-left-warning { border-left: 4px solid #ffc107 !important; }
     .border-left-info { border-left: 4px solid #0dcaf0 !important; }
+    .border-left-success { border-left: 4px solid #198754 !important; }
 </style>
 {% endblock %}

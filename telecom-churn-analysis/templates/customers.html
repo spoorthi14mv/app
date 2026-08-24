@@ -44,7 +44,7 @@
                         <th>Customer ID</th>
                         <th>Tenure</th>
                         <th>Contract</th>
-                        <th>Monthly $</th>
+                        <th>Monthly ₹</th>
                         <th>Internet Service</th>
                         <th>Probability</th>
                         <th>Risk Level</th>
@@ -57,7 +57,7 @@
                         <td class="fw-bold">{{ customer.customer_id }}</td>
                         <td>{{ customer.tenure }}</td>
                         <td>{{ customer.contract }}</td>
-                        <td>${{ customer.monthly_charges|round(2) }}</td>
+                        <td>₹{{ customer.monthly_charges|round(2) }}</td>
                         <td>{{ customer.internet_service }}</td>
                         <td>
                             <div class="d-flex align-items-center">

@@ -27,8 +27,8 @@
                         <th>Senior</th>
                         <th>Tenure</th>
                         <th>Contract</th>
-                        <th>Monthly $</th>
-                        <th>Total $</th>
+                        <th>Monthly ₹</th>
+                        <th>Total ₹</th>
                         <th>Churn</th>
                     </tr>
                 </thead>
@@ -40,8 +40,8 @@
                         <td>{{ "Yes" if customer.senior_citizen else "No" }}</td>
                         <td>{{ customer.tenure }}</td>
                         <td>{{ customer.contract }}</td>
-                        <td>${{ customer.monthly_charges|round(2) }}</td>
-                        <td>${{ customer.total_charges|round(2) }}</td>
+                        <td>₹{{ customer.monthly_charges|round(2) }}</td>
+                        <td>₹{{ customer.total_charges|round(2) }}</td>
                         <td>
                             {% if customer.churn == 'Yes' %}
                                 <span class="badge bg-danger">Yes</span>

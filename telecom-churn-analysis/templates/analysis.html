@@ -10,8 +10,15 @@
     </div>
 </div>
 
+{% if kpis.total_customers == 0 %}
+<div class="alert alert-info text-center py-5">
+    <h4>No customer data available.</h4>
+    <p>Please upload a dataset first to view the analysis.</p>
+    <a href="{{ url_for('data.upload') }}" class="btn btn-primary mt-3"><i class="fas fa-upload"></i> Go to Upload</a>
+</div>
+{% else %}
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-3 mb-3">
         <div class="card text-center shadow-sm h-100 py-2 border-left-primary">
             <div class="card-body">
                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Overall Churn Rate</div>
@@ -19,46 +26,88 @@
             </div>
         </div>
     </div>
-    <div class="col-md-9">
-        <div class="card shadow-sm h-100">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow-sm h-100 py-2 border-left-success">
             <div class="card-body">
-                <h5 class="card-title">Key Insights</h5>
-                <p class="card-text text-muted mb-0">Use the visualizations below to identify patterns. Compare short-term vs long-term contracts, analyze the impact of monthly charges, and review how different services affect customer retention.</p>
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Retention Rate</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800">{{ kpis.retention_rate }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow-sm h-100 py-2 border-left-info">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Avg Tenure (Months)</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800">{{ kpis.avg_tenure }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow-sm h-100 py-2 border-left-warning">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Avg Monthly Charges</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800">₹{{ kpis.avg_charges }}</div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Churn by Payment Method</h5>
                 <i class="fas fa-credit-card text-muted"></i>
             </div>
             <div class="card-body">
-                <canvas id="paymentChurnChart" height="250"></canvas>
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="paymentChurnChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Churn by Internet Service</h5>
                 <i class="fas fa-wifi text-muted"></i>
             </div>
             <div class="card-body">
-                <canvas id="internetChurnChart" height="250"></canvas>
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="internetChurnChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-md-12 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Avg Monthly Charges by Tenure Group</h5>
+                <i class="fas fa-chart-line text-muted"></i>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="tenureChargesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <style>
     .border-left-primary { border-left: 4px solid #4e73df !important; }
+    .border-left-success { border-left: 4px solid #1cc88a !important; }
+    .border-left-info { border-left: 4px solid #36b9cc !important; }
+    .border-left-warning { border-left: 4px solid #f6c23e !important; }
 </style>
 {% endblock %}
 
 {% block extra_js %}
+{% if kpis.total_customers > 0 %}
 <script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
+{% endif %}
 {% endblock %}

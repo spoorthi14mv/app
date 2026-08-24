@@ -10,12 +10,13 @@ class ChurnAnalyzer:
         if total == 0:
             return {
                 'total_customers': 0, 'churned': 0, 'active': 0,
-                'churn_rate': '0.0%', 'avg_charges': 0.0, 'avg_tenure': 0.0
+                'churn_rate': '0.0%', 'retention_rate': '0.0%', 'avg_charges': 0.0, 'avg_tenure': 0.0
             }
 
         churned = db.session.query(func.count(Customer.id)).filter(Customer.churn == 'Yes').scalar() or 0
         active = total - churned
         churn_rate = (churned / total) * 100
+        retention_rate = (active / total) * 100
 
         avg_charges = db.session.query(func.avg(Customer.monthly_charges)).scalar() or 0.0
         avg_tenure = db.session.query(func.avg(Customer.tenure)).scalar() or 0.0
@@ -25,6 +26,7 @@ class ChurnAnalyzer:
             'churned': churned,
             'active': active,
             'churn_rate': f"{churn_rate:.1f}%",
+            'retention_rate': f"{retention_rate:.1f}%",
             'avg_charges': round(avg_charges, 2),
             'avg_tenure': round(avg_tenure, 1)
         }
@@ -99,7 +101,7 @@ class ChurnAnalyzer:
         charges_dict = {k: v for k, v in charges_data if k is not None}
         avg_charges_churn = {
             'labels': ['Churned', 'Stayed'],
-            'data': [round(charges_dict.get('Yes', 0), 2), round(charges_dict.get('No', 0), 2)]
+            'data': [round(charges_dict.get('Yes', 0) or 0, 2), round(charges_dict.get('No', 0) or 0, 2)]
         }
 
         # 5. Churn by Payment Method
@@ -108,11 +110,34 @@ class ChurnAnalyzer:
         # 6. Churn by Internet Service
         internet_churn = get_churn_dist_by_col('internet_service')
 
+        # 7. Tenure vs Monthly Charges Scatter Approximation (Avg Monthly Charges per Tenure Group)
+        # Using the same tenure labels
+        tenure_charges_groups = {l: [] for l in labels}
+        tenure_charges_data = db.session.query(Customer.tenure, Customer.monthly_charges).all()
+        for t, m in tenure_charges_data:
+            if t is None or m is None: continue
+            for i, b in enumerate(bins[1:]):
+                if t <= b:
+                    lbl = labels[i]
+                    tenure_charges_groups[lbl].append(m)
+                    break
+
+        avg_charges_tenure = {
+            'labels': labels,
+            'datasets': [
+                {
+                    'label': 'Avg Monthly Charges',
+                    'data': [round(sum(tenure_charges_groups[l])/len(tenure_charges_groups[l]), 2) if tenure_charges_groups[l] else 0 for l in labels]
+                }
+            ]
+        }
+
         return {
             'churn_dist': churn_dist,
             'contract_churn': contract_churn,
             'tenure_churn': tenure_churn,
             'avg_charges_churn': avg_charges_churn,
             'payment_churn': payment_churn,
-            'internet_churn': internet_churn
+            'internet_churn': internet_churn,
+            'avg_charges_tenure': avg_charges_tenure
         }

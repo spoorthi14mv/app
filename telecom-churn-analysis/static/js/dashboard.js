@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 data: {
                     labels: data.avg_charges_churn.labels,
                     datasets: [{
-                        label: 'Avg Monthly Charges ($)',
+                        label: 'Avg Monthly Charges (₹)',
                         data: data.avg_charges_churn.data,
                         backgroundColor: [colorChurn, colorStayed]
                     }]
