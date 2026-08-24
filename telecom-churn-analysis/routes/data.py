@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from models import db
@@ -40,7 +41,45 @@ def upload():
                 db.session.add(dataset)
                 db.session.commit()
 
-                flash(f'File successfully uploaded and processed. Cleaned records: {len(df)}', 'success')
+                # Auto-train model after upload
+                from services.model_trainer import ModelTrainer
+                customers = Customer.query.all()
+                if len(customers) > 0:
+                    data_list = []
+                    for c in customers:
+                        data_list.append({
+                            'customer_id': c.customer_id,
+                            'gender': c.gender,
+                            'senior_citizen': c.senior_citizen,
+                            'partner': c.partner,
+                            'dependents': c.dependents,
+                            'tenure': c.tenure,
+                            'phone_service': c.phone_service,
+                            'multiple_lines': c.multiple_lines,
+                            'internet_service': c.internet_service,
+                            'online_security': c.online_security,
+                            'online_backup': c.online_backup,
+                            'device_protection': c.device_protection,
+                            'tech_support': c.tech_support,
+                            'streaming_tv': c.streaming_tv,
+                            'streaming_movies': c.streaming_movies,
+                            'contract': c.contract,
+                            'paperless_billing': c.paperless_billing,
+                            'payment_method': c.payment_method,
+                            'monthly_charges': c.monthly_charges,
+                            'total_charges': c.total_charges,
+                            'churn': c.churn
+                        })
+                    train_df = pd.DataFrame(data_list)
+                    trainer = ModelTrainer()
+                    result = trainer.train_and_evaluate(train_df)
+                    if "error" in result:
+                        flash(f'Data uploaded, but model training failed: {result["error"]}', 'warning')
+                    else:
+                        flash(f'File successfully uploaded. Model automatically trained: {result["best_model"]}', 'success')
+                else:
+                    flash(f'File successfully uploaded, but no records were valid for training.', 'warning')
+
                 return render_template('upload.html', summary=summary, filename=filename)
             else:
                 flash(f'Error processing file: {summary}', 'danger')

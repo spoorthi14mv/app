@@ -1,6 +1,7 @@
 import os
 import joblib
 import pandas as pd
+import numpy as np
 from flask import current_app
 from models import db
 from models.prediction import Prediction
@@ -13,57 +14,61 @@ class PredictionService:
 
     def load_model(self):
         models_dir = current_app.config['MODELS_DIR']
-        model_path = os.path.join(models_dir, 'model.joblib')
-        pipeline_path = os.path.join(models_dir, 'preprocessing.joblib')
+        pipeline_path = os.path.join(models_dir, 'pipeline.joblib')
 
-        if os.path.exists(model_path) and os.path.exists(pipeline_path):
-            self.model = joblib.load(model_path)
+        if os.path.exists(pipeline_path):
             self.pipeline = joblib.load(pipeline_path)
             return True
         return False
 
     def predict_single(self, customer_data):
-        if not self.model or not self.pipeline:
+        if not self.pipeline:
             if not self.load_model():
-                return {"error": "Model not trained yet."}
+                return {"error": "No trained model is available. Please upload a dataset containing both Churn=Yes and Churn=No records."}
 
         df = pd.DataFrame([customer_data])
 
-        # Apply preprocessing
         try:
-            for col, le in self.pipeline['encoders'].items():
-                if col in df.columns:
-                    # Handle unseen categories safely
-                    known_classes = list(le.classes_)
-                    df[col] = df[col].apply(lambda x: x if x in known_classes else known_classes[0])
-                    df[col] = le.transform(df[col].astype(str))
-                else:
-                    df[col] = 0 # Default if missing
+            # Get expected features from the pipeline's ColumnTransformer
+            expected_num_cols = self.pipeline.named_steps['preprocessor'].transformers_[0][2]
+            expected_cat_cols = self.pipeline.named_steps['preprocessor'].transformers_[1][2]
 
-            if len(self.pipeline['num_cols']) > 0:
-                for col in self.pipeline['num_cols']:
-                    if col not in df.columns:
-                        df[col] = 0.0
-                df[self.pipeline['num_cols']] = self.pipeline['scaler'].transform(df[self.pipeline['num_cols']])
+            for col in expected_num_cols:
+                if col not in df.columns:
+                    df[col] = 0.0
+            for col in expected_cat_cols:
+                if col not in df.columns:
+                    df[col] = 'Unknown'
 
-            # Ensure columns match training
-            X = pd.DataFrame()
-            for col in self.pipeline['features']:
-                X[col] = df[col] if col in df.columns else 0.0
+            # Ensure TotalCharges is numeric, coercing blanks to NaN, then fill
+            if 'total_charges' in df.columns:
+                df['total_charges'] = pd.to_numeric(df['total_charges'].replace(r'^\s*$', np.nan, regex=True), errors='coerce')
+
+            # Fill NaNs
+            cat_cols = df.select_dtypes(include=['object']).columns.tolist()
+            num_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+            for col in num_cols:
+                df[col] = df[col].fillna(0.0)
+            for col in cat_cols:
+                df[col] = df[col].fillna('Unknown')
+
+            # Select exactly the features the pipeline expects
+            all_features = expected_num_cols + expected_cat_cols
+            X = df[all_features]
 
             # Predict
-            if hasattr(self.model, "predict_proba"):
-                prob = self.model.predict_proba(X)[0][1]
+            if hasattr(self.pipeline, "predict_proba"):
+                prob = self.pipeline.predict_proba(X)[0][1]
             else:
-                prob = float(self.model.predict(X)[0])
+                prob = float(self.pipeline.predict(df)[0])
 
             pred = "Yes" if prob > 0.5 else "No"
 
-            risk = "LOW"
-            if prob > 0.6:
-                risk = "HIGH"
-            elif prob >= 0.3:
-                risk = "MEDIUM"
+            risk = "Low"
+            if prob >= 0.7:
+                risk = "High"
+            elif prob >= 0.4:
+                risk = "Medium"
 
             return {
                 "probability": round(prob * 100, 1),
@@ -71,48 +76,53 @@ class PredictionService:
                 "risk_level": risk
             }
         except Exception as e:
-            return {"error": str(e)}
+            return {"error": f"Prediction failed: {str(e)}"}
 
     def predict_bulk(self, df):
-        if not self.model or not self.pipeline:
+        if not self.pipeline:
             if not self.load_model():
-                return None, "Model not trained yet."
+                return None, "No trained model is available. Please upload a dataset containing both Churn=Yes and Churn=No records."
 
-        results = []
         try:
             # Keep original for returning
             orig_df = df.copy()
 
-            for col, le in self.pipeline['encoders'].items():
-                if col in df.columns:
-                    known_classes = list(le.classes_)
-                    df[col] = df[col].apply(lambda x: x if x in known_classes else known_classes[0])
-                    df[col] = le.transform(df[col].astype(str))
-                else:
-                    df[col] = 0
+            expected_num_cols = self.pipeline.named_steps['preprocessor'].transformers_[0][2]
+            expected_cat_cols = self.pipeline.named_steps['preprocessor'].transformers_[1][2]
 
-            if len(self.pipeline['num_cols']) > 0:
-                for col in self.pipeline['num_cols']:
-                    if col not in df.columns:
-                        df[col] = 0.0
-                df[self.pipeline['num_cols']] = self.pipeline['scaler'].transform(df[self.pipeline['num_cols']])
+            for col in expected_num_cols:
+                if col not in orig_df.columns:
+                    orig_df[col] = 0.0
+            for col in expected_cat_cols:
+                if col not in orig_df.columns:
+                    orig_df[col] = 'Unknown'
 
-            X = pd.DataFrame()
-            for col in self.pipeline['features']:
-                X[col] = df[col] if col in df.columns else 0.0
+            if 'total_charges' in orig_df.columns:
+                orig_df['total_charges'] = pd.to_numeric(orig_df['total_charges'].replace(r'^\s*$', np.nan, regex=True), errors='coerce')
 
-            if hasattr(self.model, "predict_proba"):
-                probs = self.model.predict_proba(X)[:, 1]
+            cat_cols = orig_df.select_dtypes(include=['object']).columns.tolist()
+            num_cols = orig_df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+
+            for col in num_cols:
+                orig_df[col] = orig_df[col].fillna(0.0)
+            for col in cat_cols:
+                orig_df[col] = orig_df[col].fillna('Unknown')
+
+            all_features = expected_num_cols + expected_cat_cols
+            X = orig_df[all_features]
+
+            if hasattr(self.pipeline, "predict_proba"):
+                probs = self.pipeline.predict_proba(X)[:, 1]
             else:
-                probs = self.model.predict(X)
+                probs = self.pipeline.predict(X)
 
             orig_df['churn_probability'] = np.round(probs * 100, 1)
             orig_df['predicted_churn'] = ['Yes' if p > 0.5 else 'No' for p in probs]
 
             def get_risk(p):
-                if p > 0.6: return "HIGH"
-                if p >= 0.3: return "MEDIUM"
-                return "LOW"
+                if p >= 0.7: return "High"
+                if p >= 0.4: return "Medium"
+                return "Low"
 
             orig_df['risk_level'] = [get_risk(p) for p in probs]
 
