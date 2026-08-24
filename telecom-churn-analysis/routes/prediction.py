@@ -51,12 +51,53 @@ def predict_bulk():
             df.columns = [str(c).lower().strip() for c in df.columns]
 
             service = PredictionService()
-            _, error = service.predict_bulk(df)
+            result_df, error = service.predict_bulk(df)
 
             if error:
                 return jsonify({'error': error})
 
-            return jsonify({'success': 'Bulk predictions completed and saved to database.'})
+            # Aggregate stats to return to frontend for charts
+            stats = {
+                'churn_dist': {
+                    'labels': ['Predicted Churn (Yes)', 'Predicted Stay (No)'],
+                    'data': [
+                        int((result_df['predicted_churn'] == 'Yes').sum()),
+                        int((result_df['predicted_churn'] == 'No').sum())
+                    ]
+                },
+                'risk_dist': {
+                    'labels': ['High', 'Medium', 'Low'],
+                    'data': [
+                        int((result_df['risk_level'] == 'High').sum()),
+                        int((result_df['risk_level'] == 'Medium').sum()),
+                        int((result_df['risk_level'] == 'Low').sum())
+                    ]
+                },
+                'contract_dist': {
+                    'labels': [],
+                    'datasets': [
+                        {'label': 'High Risk', 'data': []},
+                        {'label': 'Medium Risk', 'data': []},
+                        {'label': 'Low Risk', 'data': []}
+                    ]
+                }
+            }
+
+            # Group by contract
+            if 'contract' in result_df.columns:
+                contracts = result_df['contract'].unique().tolist()
+                stats['contract_dist']['labels'] = contracts
+                for risk in ['High', 'Medium', 'Low']:
+                    risk_data = []
+                    for contract in contracts:
+                        c_df = result_df[(result_df['contract'] == contract) & (result_df['risk_level'] == risk)]
+                        risk_data.append(int(len(c_df)))
+                    stats['contract_dist']['datasets'][['High', 'Medium', 'Low'].index(risk)]['data'] = risk_data
+
+            return jsonify({
+                'success': 'Bulk predictions completed and saved to database.',
+                'stats': stats
+            })
         except Exception as e:
             return jsonify({'error': str(e)})
 
@@ -122,28 +163,94 @@ def customers():
 
     return render_template('customers.html', results=results, filter_risk=filter_risk)
 
+from sqlalchemy import func
+
 @prediction_bp.route('/segments')
 def segments():
-    # Basic aggregation for segments
-    high_value_low_risk = db.session.query(Customer).join(Prediction, Customer.customer_id == Prediction.customer_id).filter(
-        Customer.monthly_charges > 70, Prediction.risk_level == 'LOW'
-    ).count()
+    total_customers = db.session.query(Customer).count() or 1
 
-    high_value_high_risk = db.session.query(Customer).join(Prediction, Customer.customer_id == Prediction.customer_id).filter(
-        Customer.monthly_charges > 70, Prediction.risk_level == 'HIGH'
-    ).count()
+    def get_segment_stats(query):
+        count = query.count()
+        if count == 0:
+            return {'count': 0, 'percent': 0, 'churn_rate': 0, 'avg_tenure': 0, 'avg_charges': 0}
 
-    long_term_loyal = db.session.query(Customer).join(Prediction, Customer.customer_id == Prediction.customer_id).filter(
-        Customer.tenure > 60, Prediction.risk_level == 'LOW'
-    ).count()
+        # Calculate stats for this segment
+        avg_t = query.with_entities(func.avg(Customer.tenure)).scalar() or 0
+        avg_c = query.with_entities(func.avg(Customer.monthly_charges)).scalar() or 0
 
-    new_customers = db.session.query(Customer).filter(Customer.tenure <= 12).count()
+        churned = query.filter(Customer.churn == 'Yes').count()
+
+        return {
+            'count': count,
+            'percent': round((count / total_customers) * 100, 1),
+            'churn_rate': round((churned / count) * 100, 1),
+            'avg_tenure': round(avg_t, 1),
+            'avg_charges': round(avg_c, 2)
+        }
+
+    # 1. High Value - Low Risk
+    q1 = db.session.query(Customer).outerjoin(Prediction, Customer.customer_id == Prediction.customer_id).filter(
+        Customer.monthly_charges > 70, (Prediction.risk_level == 'Low') | (Prediction.risk_level.is_(None))
+    )
+    s1 = get_segment_stats(q1)
+
+    # 2. High Value - High Risk
+    q2 = db.session.query(Customer).join(Prediction, Customer.customer_id == Prediction.customer_id).filter(
+        Customer.monthly_charges > 70, Prediction.risk_level == 'High'
+    )
+    s2 = get_segment_stats(q2)
+
+    # 3. Long-Term Loyal
+    q3 = db.session.query(Customer).outerjoin(Prediction, Customer.customer_id == Prediction.customer_id).filter(
+        Customer.tenure > 60, (Prediction.risk_level == 'Low') | (Prediction.risk_level.is_(None))
+    )
+    s3 = get_segment_stats(q3)
+
+    # 4. New Customers
+    q4 = db.session.query(Customer).filter(Customer.tenure <= 12)
+    s4 = get_segment_stats(q4)
 
     segments_data = {
-        'high_value_low_risk': high_value_low_risk,
-        'high_value_high_risk': high_value_high_risk,
-        'long_term_loyal': long_term_loyal,
-        'new_customers': new_customers
+        'high_value_low_risk': s1,
+        'high_value_high_risk': s2,
+        'long_term_loyal': s3,
+        'new_customers': s4
     }
 
-    return render_template('segments.html', segments=segments_data)
+    return render_template('segments.html', segments=segments_data, total=total_customers)
+
+@prediction_bp.route('/api/segments/charts')
+def api_segments_charts():
+    total_customers = db.session.query(Customer).count() or 1
+
+    q1 = db.session.query(Customer).outerjoin(Prediction, Customer.customer_id == Prediction.customer_id).filter(
+        Customer.monthly_charges > 70, (Prediction.risk_level == 'Low') | (Prediction.risk_level.is_(None))
+    )
+    q2 = db.session.query(Customer).join(Prediction, Customer.customer_id == Prediction.customer_id).filter(
+        Customer.monthly_charges > 70, Prediction.risk_level == 'High'
+    )
+    q3 = db.session.query(Customer).outerjoin(Prediction, Customer.customer_id == Prediction.customer_id).filter(
+        Customer.tenure > 60, (Prediction.risk_level == 'Low') | (Prediction.risk_level.is_(None))
+    )
+    q4 = db.session.query(Customer).filter(Customer.tenure <= 12)
+
+    counts = [q1.count(), q2.count(), q3.count(), q4.count()]
+    labels = ['High Value/Low Risk', 'High Value/High Risk', 'Long-Term Loyal', 'New Customers']
+
+    # Calculate churns
+    def get_churns(q):
+        if q.count() == 0: return 0
+        return q.filter(Customer.churn == 'Yes').count()
+
+    churns = [get_churns(q1), get_churns(q2), get_churns(q3), get_churns(q4)]
+
+    return jsonify({
+        'distribution': {
+            'labels': labels,
+            'data': counts
+        },
+        'churn': {
+            'labels': labels,
+            'data': churns
+        }
+    })

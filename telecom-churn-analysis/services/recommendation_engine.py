@@ -118,36 +118,45 @@ class RecommendationEngine:
         # Join Customer and Prediction tables based on customer_id
         results = db.session.query(Customer, Prediction).filter(
             Customer.customer_id == Prediction.customer_id,
-            Prediction.risk_level == 'HIGH'
+            Prediction.risk_level == 'High'
         ).limit(limit).all()
 
         recommendations = []
         avg_charges = db.session.query(func.avg(Customer.monthly_charges)).scalar() or 0
 
         for customer, prediction in results:
-            reason = "High risk profile"
-            action = "Review account"
+            reason = []
+            actions = []
             priority = "Medium"
 
-            if customer.contract == 'Month-to-month' and prediction.churn_probability > 70:
-                reason = "High risk + Short contract"
-                action = "Recommend contract upgrade incentive"
+            if customer.contract == 'Month-to-month':
+                reason.append("Short contract")
+                actions.append("Offer contract upgrade with 1st month free")
                 priority = "High"
-            elif customer.monthly_charges > avg_charges and prediction.churn_probability > 70:
-                reason = "High risk + High charges"
-                action = "Offer personalized discount"
+
+            if customer.monthly_charges > avg_charges:
+                reason.append("High monthly charges")
+                actions.append("Provide targeted service discount or bundle offer")
                 priority = "High"
-            elif customer.tech_support == 'No' and prediction.churn_probability > 70:
-                reason = "High risk + No Tech Support"
-                action = "Offer free tech support trial"
-                priority = "Medium"
+
+            if customer.tech_support == 'No' and customer.internet_service != 'No':
+                reason.append("No Tech Support")
+                actions.append("Offer free 3-month tech support trial")
+
+            if customer.tenure <= 12:
+                reason.append("Low tenure")
+                actions.append("Trigger onboarding check-in call")
+
+            if not reason:
+                reason.append("General high risk")
+                actions.append("Assign to personal retention campaign")
 
             recommendations.append({
                 'customer_id': customer.customer_id,
                 'probability': prediction.churn_probability,
                 'risk': prediction.risk_level,
-                'reason': reason,
-                'action': action,
+                'reason': " + ".join(reason),
+                'action': " | ".join(actions),
                 'priority': priority
             })
 

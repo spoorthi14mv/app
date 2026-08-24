@@ -46,6 +46,45 @@
 </div>
 
 {% if insights %}
+<div class="row mb-4" id="insightsChartsRow" style="display:none;">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Churn Risk Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="riskDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">High-Risk Customers by Segment</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="highRiskSegmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Customer Risk Factors</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="riskFactorsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         <div class="card shadow-sm">
@@ -104,4 +143,10 @@
     .border-left-info { border-left: 4px solid #0dcaf0 !important; }
     .border-left-success { border-left: 4px solid #198754 !important; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+{% if insights %}
+<script src="{{ url_for('static', filename='js/insights.js') }}"></script>
+{% endif %}
 {% endblock %}

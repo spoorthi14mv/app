@@ -94,9 +94,79 @@ document.addEventListener("DOMContentLoaded", function() {
                     showAlert(data.error, 'danger');
                 } else {
                     showAlert(data.success, 'success');
-                    setTimeout(() => {
-                        window.location.href = '/customers';
-                    }, 2000);
+
+                    // Render charts
+                    if (data.stats && document.getElementById('bulkChartsRow')) {
+                        document.getElementById('bulkChartsRow').style.display = 'flex';
+
+                        const commonOptions = {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        };
+
+                        // Churn Distribution
+                        new Chart(document.getElementById('bulkChurnDistChart'), {
+                            type: 'doughnut',
+                            data: {
+                                labels: data.stats.churn_dist.labels,
+                                datasets: [{
+                                    data: data.stats.churn_dist.data,
+                                    backgroundColor: ['#e74a3b', '#1cc88a']
+                                }]
+                            },
+                            options: commonOptions
+                        });
+
+                        // Risk Distribution
+                        new Chart(document.getElementById('bulkRiskDistChart'), {
+                            type: 'pie',
+                            data: {
+                                labels: data.stats.risk_dist.labels,
+                                datasets: [{
+                                    data: data.stats.risk_dist.data,
+                                    backgroundColor: ['#e74a3b', '#f6c23e', '#1cc88a']
+                                }]
+                            },
+                            options: commonOptions
+                        });
+
+                        // Contract Distribution
+                        if (data.stats.contract_dist.labels.length > 0) {
+                            new Chart(document.getElementById('bulkContractChart'), {
+                                type: 'bar',
+                                data: {
+                                    labels: data.stats.contract_dist.labels,
+                                    datasets: [
+                                        {
+                                            label: 'High Risk',
+                                            data: data.stats.contract_dist.datasets[0].data,
+                                            backgroundColor: '#e74a3b'
+                                        },
+                                        {
+                                            label: 'Medium Risk',
+                                            data: data.stats.contract_dist.datasets[1].data,
+                                            backgroundColor: '#f6c23e'
+                                        },
+                                        {
+                                            label: 'Low Risk',
+                                            data: data.stats.contract_dist.datasets[2].data,
+                                            backgroundColor: '#1cc88a'
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    ...commonOptions,
+                                    scales: {
+                                        x: { stacked: true },
+                                        y: { stacked: true, beginAtZero: true }
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
             })
             .catch(error => {

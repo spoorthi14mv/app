@@ -6,10 +6,17 @@
 <div class="row mb-4">
     <div class="col-12">
         <h2><i class="fas fa-users"></i> Customer Segmentation</h2>
-        <p class="text-muted">Explore distinct customer groups based on behavior, value, and risk.</p>
+        <p class="text-muted">Explore distinct customer groups based on behavior, value, and risk dynamically calculated from your dataset.</p>
     </div>
 </div>
 
+{% if total == 0 %}
+<div class="alert alert-info text-center py-5">
+    <h4>No customer data available.</h4>
+    <p>Please upload a dataset first to view customer segments.</p>
+    <a href="{{ url_for('data.upload') }}" class="btn btn-primary mt-3"><i class="fas fa-upload"></i> Go to Upload</a>
+</div>
+{% else %}
 <div class="row">
     <!-- Segment 1 -->
     <div class="col-md-6 col-lg-3 mb-4">
@@ -17,9 +24,14 @@
             <div class="card-body text-center">
                 <div class="display-4 text-success mb-3"><i class="fas fa-crown"></i></div>
                 <h5 class="card-title">High Value - Low Risk</h5>
-                <p class="card-text text-muted small">Customers with high monthly charges and low probability of churn.</p>
-                <h2 class="mt-auto">{{ segments.high_value_low_risk }}</h2>
-                <button class="btn btn-sm btn-outline-success mt-2 w-100">View Segment</button>
+                <p class="card-text text-muted small">High monthly charges (>₹70) with low churn probability.</p>
+                <h2 class="mt-auto">{{ segments.high_value_low_risk.count }} <small class="text-muted fs-6">({{ segments.high_value_low_risk.percent }}%)</small></h2>
+                <hr>
+                <div class="row text-muted small text-start">
+                    <div class="col-6">Avg Tenure:<br><strong>{{ segments.high_value_low_risk.avg_tenure }}mo</strong></div>
+                    <div class="col-6">Avg Charge:<br><strong>₹{{ segments.high_value_low_risk.avg_charges }}</strong></div>
+                    <div class="col-12 mt-2 text-center text-success fw-bold">Churn Rate: {{ segments.high_value_low_risk.churn_rate }}%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -30,9 +42,14 @@
             <div class="card-body text-center">
                 <div class="display-4 text-danger mb-3"><i class="fas fa-fire"></i></div>
                 <h5 class="card-title">High Value - High Risk</h5>
-                <p class="card-text text-muted small">Most critical segment. High revenue customers who are likely to leave.</p>
-                <h2 class="mt-auto">{{ segments.high_value_high_risk }}</h2>
-                <button class="btn btn-sm btn-outline-danger mt-2 w-100">View Segment</button>
+                <p class="card-text text-muted small">High monthly charges (>₹70) highly likely to leave.</p>
+                <h2 class="mt-auto">{{ segments.high_value_high_risk.count }} <small class="text-muted fs-6">({{ segments.high_value_high_risk.percent }}%)</small></h2>
+                <hr>
+                <div class="row text-muted small text-start">
+                    <div class="col-6">Avg Tenure:<br><strong>{{ segments.high_value_high_risk.avg_tenure }}mo</strong></div>
+                    <div class="col-6">Avg Charge:<br><strong>₹{{ segments.high_value_high_risk.avg_charges }}</strong></div>
+                    <div class="col-12 mt-2 text-center text-danger fw-bold">Churn Rate: {{ segments.high_value_high_risk.churn_rate }}%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -43,9 +60,14 @@
             <div class="card-body text-center">
                 <div class="display-4 text-info mb-3"><i class="fas fa-shield-alt"></i></div>
                 <h5 class="card-title">Long-Term Loyal</h5>
-                <p class="card-text text-muted small">Tenure > 5 years with low churn risk. Ideal for upselling.</p>
-                <h2 class="mt-auto">{{ segments.long_term_loyal }}</h2>
-                <button class="btn btn-sm btn-outline-info mt-2 w-100">View Segment</button>
+                <p class="card-text text-muted small">Tenure > 5 years (60mo) with low churn risk.</p>
+                <h2 class="mt-auto">{{ segments.long_term_loyal.count }} <small class="text-muted fs-6">({{ segments.long_term_loyal.percent }}%)</small></h2>
+                <hr>
+                <div class="row text-muted small text-start">
+                    <div class="col-6">Avg Tenure:<br><strong>{{ segments.long_term_loyal.avg_tenure }}mo</strong></div>
+                    <div class="col-6">Avg Charge:<br><strong>₹{{ segments.long_term_loyal.avg_charges }}</strong></div>
+                    <div class="col-12 mt-2 text-center text-info fw-bold">Churn Rate: {{ segments.long_term_loyal.churn_rate }}%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -56,11 +78,96 @@
             <div class="card-body text-center">
                 <div class="display-4 text-primary mb-3"><i class="fas fa-seedling"></i></div>
                 <h5 class="card-title">New Customers</h5>
-                <p class="card-text text-muted small">Tenure &lt; 1 year. Needs onboarding and engagement.</p>
-                <h2 class="mt-auto">{{ segments.new_customers }}</h2>
-                <button class="btn btn-sm btn-outline-primary mt-2 w-100">View Segment</button>
+                <p class="card-text text-muted small">Tenure &lt;= 1 year. Needs onboarding/engagement.</p>
+                <h2 class="mt-auto">{{ segments.new_customers.count }} <small class="text-muted fs-6">({{ segments.new_customers.percent }}%)</small></h2>
+                <hr>
+                <div class="row text-muted small text-start">
+                    <div class="col-6">Avg Tenure:<br><strong>{{ segments.new_customers.avg_tenure }}mo</strong></div>
+                    <div class="col-6">Avg Charge:<br><strong>₹{{ segments.new_customers.avg_charges }}</strong></div>
+                    <div class="col-12 mt-2 text-center text-primary fw-bold">Churn Rate: {{ segments.new_customers.churn_rate }}%</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Segment Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="segmentDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Churners by Segment</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="segmentChurnChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if total > 0 %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    fetch('/api/segments/charts')
+        .then(response => response.json())
+        .then(data => {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            };
+
+            const colors = ['#1cc88a', '#e74a3b', '#36b9cc', '#4e73df'];
+
+            new Chart(document.getElementById('segmentDistChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.distribution.labels,
+                    datasets: [{
+                        data: data.distribution.data,
+                        backgroundColor: colors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: commonOptions
+            });
+
+            new Chart(document.getElementById('segmentChurnChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.churn.labels,
+                    datasets: [{
+                        label: 'Churned Customers',
+                        data: data.churn.data,
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        });
+});
+</script>
+{% endif %}
 {% endblock %}

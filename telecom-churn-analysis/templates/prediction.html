@@ -18,7 +18,7 @@
 
 <div class="row">
     <!-- Single Prediction Form -->
-    <div class="col-md-7 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-transparent">
                 <h5 class="mb-0">Individual Customer Prediction</h5>
@@ -70,8 +70,8 @@
                             <select class="form-select" name="payment_method">
                                 <option value="Electronic check">Electronic check</option>
                                 <option value="Mailed check">Mailed check</option>
-                                <option value="Bank transfer (automatic)">Bank transfer</option>
-                                <option value="Credit card (automatic)">Credit card</option>
+                                <option value="Bank transfer (automatic)">Bank transfer (automatic)</option>
+                                <option value="Credit card (automatic)">Credit card (automatic)</option>
                             </select>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
     </div>
 
     <!-- Prediction Result & Bulk -->
-    <div class="col-md-5 mb-4">
+    <div class="col-md-6 mb-4">
         <!-- Single Result -->
         <div class="card shadow-sm mb-4" id="predictionResultCard" style="display:none;">
             <div class="card-header bg-transparent">
@@ -103,7 +103,7 @@
         </div>
 
         <!-- Bulk Prediction -->
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-transparent">
                 <h5 class="mb-0">Bulk Prediction (CSV/Excel)</h5>
             </div>
@@ -111,14 +111,51 @@
                 <form id="bulkPredictionForm" enctype="multipart/form-data" method="POST" action="{{ url_for('prediction.predict_bulk') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="file" name="file" class="form-control mb-3" accept=".csv,.xlsx" required>
-                    <button type="submit" class="btn btn-secondary w-100">
+                    <button type="submit" class="btn btn-secondary w-100 mb-3">
                         <i class="fas fa-file-import"></i> Upload & Predict All
                     </button>
                 </form>
-                <div class="mt-3">
-                    <a href="{{ url_for('prediction.customers') }}" class="btn btn-outline-info w-100">
-                        <i class="fas fa-users"></i> View Predicted Customers
-                    </a>
+                <a href="{{ url_for('prediction.customers') }}" class="btn btn-outline-info w-100">
+                    <i class="fas fa-users"></i> View Predicted Customers Table
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="bulkChartsRow" style="display:none;">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Predicted Churn</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="bulkChurnDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Risk Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="bulkRiskDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Churn by Contract</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="bulkContractChart"></canvas>
                 </div>
             </div>
         </div>

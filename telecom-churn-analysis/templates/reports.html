@@ -68,49 +68,6 @@
         </div>
     </div>
 
-    <!-- Machine Learning Model Performance -->
-    <div class="col-12 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Machine Learning Model Performance</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 text-center align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th class="text-start">Model Name</th>
-                                <th>Accuracy</th>
-                                <th>Precision</th>
-                                <th>Recall</th>
-                                <th>F1 Score</th>
-                                <th>ROC-AUC</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for model in models %}
-                            <tr>
-                                <td class="text-start fw-bold">{{ model.model_name }}</td>
-                                <td>{{ (model.accuracy * 100)|round(2) }}%</td>
-                                <td>{{ (model.precision * 100)|round(2) }}%</td>
-                                <td class="fw-bold text-primary">{{ (model.recall * 100)|round(2) }}%</td>
-                                <td>{{ (model.f1_score * 100)|round(2) }}%</td>
-                                <td class="fw-bold text-success">{{ (model.roc_auc * 100)|round(2) }}%</td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="6" class="py-4">No models trained yet. Please go to Predictions to train the models.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer bg-light text-muted small">
-                <i class="fas fa-info-circle"></i> For churn prediction, <strong>Recall</strong> (identifying as many actual churners as possible) and <strong>ROC-AUC</strong> are often more important than raw accuracy.
-            </div>
-        </div>
-    </div>
 </div>
 {% else %}
 <div class="alert alert-info text-center py-5">

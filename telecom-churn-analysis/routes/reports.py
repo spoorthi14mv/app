@@ -10,11 +10,10 @@ def index():
     from services.churn_analyzer import ChurnAnalyzer
     from services.recommendation_engine import RecommendationEngine
 
-    model_results = ModelResult.query.all()
     kpis = ChurnAnalyzer.get_dashboard_kpis()
     insights = RecommendationEngine.get_insights()
 
-    return render_template('reports.html', models=model_results, kpis=kpis, insights=insights)
+    return render_template('reports.html', kpis=kpis, insights=insights)
 
 @reports_bp.route('/reports/export')
 def export_excel():
