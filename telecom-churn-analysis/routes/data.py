@@ -1,7 +1,6 @@
 import os
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
-from flask_login import login_required
 from models import db
 from models.customer import Customer
 from models.dataset import Dataset
@@ -13,7 +12,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 @data_bp.route('/upload', methods=['GET', 'POST'])
-@login_required
 def upload():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -50,7 +48,6 @@ def upload():
     return render_template('upload.html')
 
 @data_bp.route('/data')
-@login_required
 def explorer():
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '')

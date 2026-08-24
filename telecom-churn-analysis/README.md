@@ -19,7 +19,7 @@ This project aims to demonstrate an end-to-end data science lifecycle applied to
 
 ## Technologies
 - **Frontend:** HTML5, CSS3, Bootstrap 5, JavaScript, Chart.js, Font Awesome
-- **Backend:** Python 3.x, Flask, Flask-SQLAlchemy, Flask-Login, Flask-WTF
+- **Backend:** Python 3.x, Flask, Flask-SQLAlchemy, Flask-WTF
 - **Data Science / ML:** Pandas, NumPy, Scikit-learn, XGBoost, Joblib
 - **Database:** SQLite (default), optionally MySQL (via SQLAlchemy configuration)
 
@@ -47,11 +47,9 @@ Install the required packages:
 `pip install -r requirements.txt`
 
 ### Database Setup
-The application uses SQLite by default. To initialize the database and create the default admin account, run:
+The application uses SQLite by default. To initialize the database, run:
 `python -m flask --app app init-db`
-This will create a `telecom_churn.db` file in the `instance/` folder and generate an admin user with credentials:
-- **Username:** admin (or admin@telecom.com)
-- **Password:** admin123
+This will create a `telecom_churn.db` file in the `instance/` folder.
 
 To use MySQL, set the `DATABASE_URL` environment variable:
 `export DATABASE_URL=mysql+pymysql://username:password@localhost/telecom_churn`

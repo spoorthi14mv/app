@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
-from flask_login import login_required
 from models import db
 from models.customer import Customer
 from models.prediction import Prediction
@@ -12,12 +11,10 @@ from services.prediction_service import PredictionService
 prediction_bp = Blueprint('prediction', __name__)
 
 @prediction_bp.route('/prediction', methods=['GET'])
-@login_required
 def index():
     return render_template('prediction.html')
 
 @prediction_bp.route('/predict', methods=['POST'])
-@login_required
 def predict_single():
     data = request.form.to_dict()
     # Convert numeric fields
@@ -31,7 +28,6 @@ def predict_single():
     return jsonify(result)
 
 @prediction_bp.route('/bulk-predict', methods=['POST'])
-@login_required
 def predict_bulk():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -65,7 +61,6 @@ def predict_bulk():
             return jsonify({'error': str(e)})
 
 @prediction_bp.route('/train', methods=['POST'])
-@login_required
 def train_model():
     # Load current customers from DB to train
     customers = Customer.query.all()
@@ -113,7 +108,6 @@ def train_model():
     })
 
 @prediction_bp.route('/customers')
-@login_required
 def customers():
     filter_risk = request.args.get('risk', '')
 
@@ -129,7 +123,6 @@ def customers():
     return render_template('customers.html', results=results, filter_risk=filter_risk)
 
 @prediction_bp.route('/segments')
-@login_required
 def segments():
     # Basic aggregation for segments
     high_value_low_risk = db.session.query(Customer).join(Prediction, Customer.customer_id == Prediction.customer_id).filter(

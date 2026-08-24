@@ -1,6 +1,5 @@
 Flask
 Flask-SQLAlchemy
-Flask-Login
 Flask-WTF
 pandas
 numpy
