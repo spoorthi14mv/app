@@ -126,25 +126,79 @@ class PredictionService:
 
             orig_df['risk_level'] = [get_risk(p) for p in probs]
 
-            # Save predictions to DB (optional, simplified here)
-            # Clear old predictions
-            db.session.query(Prediction).delete()
+            # Upsert customers and predictions
+            from models.customer import Customer
 
-            predictions = []
+            customer_ids = [str(cid) for cid in orig_df['customer_id'].tolist()]
+
+            # Fetch existing customers and predictions
+            existing_customers = {c.customer_id: c for c in Customer.query.filter(Customer.customer_id.in_(customer_ids)).all()}
+            existing_predictions = {p.customer_id: p for p in Prediction.query.filter(Prediction.customer_id.in_(customer_ids)).all()}
+
+            new_customers = []
+            new_predictions = []
+
             for i, row in orig_df.iterrows():
-                p = Prediction(
-                    customer_id=str(row.get('customer_id', f'CUST_{i}')),
-                    churn_probability=row['churn_probability'],
-                    predicted_churn=row['predicted_churn'],
-                    risk_level=row['risk_level'],
-                    model_name="Selected Model"
-                )
-                predictions.append(p)
+                cid = str(row['customer_id'])
 
-            db.session.bulk_save_objects(predictions)
+                # Upsert Customer if it's a new file (columns might be present)
+                if cid not in existing_customers:
+                    # We might not have all columns if it's purely a prediction payload,
+                    # but if we do, we save them. Otherwise defaults.
+                    cust = Customer(
+                        customer_id=cid,
+                        gender=str(row.get('gender', 'Unknown')),
+                        senior_citizen=int(row.get('senior_citizen', 0)),
+                        partner=str(row.get('partner', 'No')),
+                        dependents=str(row.get('dependents', 'No')),
+                        tenure=int(row.get('tenure', 0)),
+                        phone_service=str(row.get('phone_service', 'No')),
+                        multiple_lines=str(row.get('multiple_lines', 'No phone service')),
+                        internet_service=str(row.get('internet_service', 'No')),
+                        online_security=str(row.get('online_security', 'No internet service')),
+                        online_backup=str(row.get('online_backup', 'No internet service')),
+                        device_protection=str(row.get('device_protection', 'No internet service')),
+                        tech_support=str(row.get('tech_support', 'No internet service')),
+                        streaming_tv=str(row.get('streaming_tv', 'No internet service')),
+                        streaming_movies=str(row.get('streaming_movies', 'No internet service')),
+                        contract=str(row.get('contract', 'Month-to-month')),
+                        paperless_billing=str(row.get('paperless_billing', 'Yes')),
+                        payment_method=str(row.get('payment_method', 'Electronic check')),
+                        monthly_charges=float(row.get('monthly_charges', 0.0)),
+                        total_charges=float(row.get('total_charges', 0.0)),
+                        churn=str(row.get('churn', 'No'))
+                    )
+                    new_customers.append(cust)
+
+                # Upsert Prediction
+                prob = float(row['churn_probability'])
+                pred_val = str(row['predicted_churn'])
+                risk = str(row['risk_level'])
+
+                if cid in existing_predictions:
+                    pred = existing_predictions[cid]
+                    pred.churn_probability = prob
+                    pred.predicted_churn = pred_val
+                    pred.risk_level = risk
+                else:
+                    pred = Prediction(
+                        customer_id=cid,
+                        churn_probability=prob,
+                        predicted_churn=pred_val,
+                        risk_level=risk,
+                        model_name="Selected Model"
+                    )
+                    new_predictions.append(pred)
+
+            if new_customers:
+                db.session.bulk_save_objects(new_customers)
+            if new_predictions:
+                db.session.bulk_save_objects(new_predictions)
+
             db.session.commit()
 
             return orig_df, None
 
         except Exception as e:
+            db.session.rollback()
             return None, str(e)

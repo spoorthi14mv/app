@@ -47,8 +47,11 @@ def predict_bulk():
             else:
                 df = pd.read_excel(filepath)
 
-            # Normalize columns
-            df.columns = [str(c).lower().strip() for c in df.columns]
+            from services.data_processor import DataProcessor
+            df = DataProcessor.normalize_columns(df)
+
+            if 'customer_id' not in df.columns:
+                return jsonify({'error': 'Dataset must contain a customer_id column for bulk prediction.'})
 
             service = PredictionService()
             result_df, error = service.predict_bulk(df)
@@ -57,6 +60,10 @@ def predict_bulk():
                 return jsonify({'error': error})
 
             # Aggregate stats to return to frontend for charts
+            high_risk_count = int((result_df['risk_level'] == 'High').sum())
+            medium_risk_count = int((result_df['risk_level'] == 'Medium').sum())
+            low_risk_count = int((result_df['risk_level'] == 'Low').sum())
+
             stats = {
                 'churn_dist': {
                     'labels': ['Predicted Churn (Yes)', 'Predicted Stay (No)'],
@@ -68,9 +75,9 @@ def predict_bulk():
                 'risk_dist': {
                     'labels': ['High', 'Medium', 'Low'],
                     'data': [
-                        int((result_df['risk_level'] == 'High').sum()),
-                        int((result_df['risk_level'] == 'Medium').sum()),
-                        int((result_df['risk_level'] == 'Low').sum())
+                        high_risk_count,
+                        medium_risk_count,
+                        low_risk_count
                     ]
                 },
                 'contract_dist': {
@@ -96,9 +103,16 @@ def predict_bulk():
 
             return jsonify({
                 'success': 'Bulk predictions completed and saved to database.',
+                'prediction_count': len(result_df),
+                'high_risk_count': high_risk_count,
+                'medium_risk_count': medium_risk_count,
+                'low_risk_count': low_risk_count,
                 'stats': stats
             })
         except Exception as e:
+            import traceback
+            import sys
+            traceback.print_exc(file=sys.stdout)
             return jsonify({'error': str(e)})
 
 @prediction_bp.route('/train', methods=['POST'])
@@ -157,11 +171,14 @@ def customers():
     )
 
     if filter_risk:
-        query = query.filter(Prediction.risk_level == filter_risk)
+        query = query.filter(Prediction.risk_level == filter_risk.capitalize())
+
+    # Sort results by churn probability descending
+    query = query.order_by(Prediction.churn_probability.desc())
 
     results = query.limit(100).all()
 
-    return render_template('customers.html', results=results, filter_risk=filter_risk)
+    return render_template('customers.html', results=results, filter_risk=filter_risk.capitalize() if filter_risk else '')
 
 from sqlalchemy import func
 

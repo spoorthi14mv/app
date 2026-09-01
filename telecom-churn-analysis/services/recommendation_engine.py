@@ -116,10 +116,12 @@ class RecommendationEngine:
     @staticmethod
     def get_customer_recommendations(limit=50):
         # Join Customer and Prediction tables based on customer_id
-        results = db.session.query(Customer, Prediction).filter(
-            Customer.customer_id == Prediction.customer_id,
+        # Order by highest probability to prioritize genuinely high-risk cases
+        results = db.session.query(Customer, Prediction).join(
+            Prediction, Customer.customer_id == Prediction.customer_id
+        ).filter(
             Prediction.risk_level == 'High'
-        ).limit(limit).all()
+        ).order_by(Prediction.churn_probability.desc()).limit(limit).all()
 
         recommendations = []
         avg_charges = db.session.query(func.avg(Customer.monthly_charges)).scalar() or 0

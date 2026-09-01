@@ -15,9 +15,9 @@
             </button>
             <ul class="dropdown-menu" aria-labelledby="riskFilter">
                 <li><a class="dropdown-item" href="{{ url_for('prediction.customers') }}">All Risks</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='HIGH') }}">High Risk</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='MEDIUM') }}">Medium Risk</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='LOW') }}">Low Risk</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='High') }}">High Risk</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='Medium') }}">Medium Risk</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('prediction.customers', risk='Low') }}">Low Risk</a></li>
             </ul>
         </div>
         <a href="{{ url_for('reports.export_excel') }}" class="btn btn-success">
@@ -63,9 +63,9 @@
                             <div class="d-flex align-items-center">
                                 <span class="me-2">{{ prediction.churn_probability }}%</span>
                                 <div class="progress flex-grow-1" style="height: 5px;">
-                                    {% if prediction.risk_level == 'HIGH' %}
+                                    {% if prediction.risk_level|lower == 'high' %}
                                         {% set bg_class = 'bg-danger' %}
-                                    {% elif prediction.risk_level == 'MEDIUM' %}
+                                    {% elif prediction.risk_level|lower == 'medium' %}
                                         {% set bg_class = 'bg-warning' %}
                                     {% else %}
                                         {% set bg_class = 'bg-success' %}
@@ -75,12 +75,12 @@
                             </div>
                         </td>
                         <td>
-                            {% if prediction.risk_level == 'HIGH' %}
-                                <span class="badge bg-danger">HIGH</span>
-                            {% elif prediction.risk_level == 'MEDIUM' %}
-                                <span class="badge bg-warning text-dark">MEDIUM</span>
+                            {% if prediction.risk_level|lower == 'high' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif prediction.risk_level|lower == 'medium' %}
+                                <span class="badge bg-warning text-dark">Medium</span>
                             {% else %}
-                                <span class="badge bg-success">LOW</span>
+                                <span class="badge bg-success">Low</span>
                             {% endif %}
                         </td>
                         <td>

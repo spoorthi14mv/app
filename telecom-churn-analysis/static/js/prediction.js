@@ -43,11 +43,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 probBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
                 riskLabel.className = 'mb-3';
 
-                if (data.risk_level === 'HIGH') {
+                const riskLevelLower = data.risk_level.toLowerCase();
+                if (riskLevelLower === 'high') {
                     probBar.classList.add('bg-danger');
                     riskLabel.classList.add('text-danger');
                     textStr = "Customer is highly likely to churn.";
-                } else if (data.risk_level === 'MEDIUM') {
+                } else if (riskLevelLower === 'medium') {
                     probBar.classList.add('bg-warning', 'text-dark');
                     riskLabel.classList.add('text-warning');
                     textStr = "Customer has a moderate risk of churning.";
@@ -64,6 +65,11 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     }
+
+    // Chart instances store to destroy them before rendering new ones
+    let bulkChurnChartInstance = null;
+    let bulkRiskChartInstance = null;
+    let bulkContractChartInstance = null;
 
     // Bulk prediction form
     const bulkForm = document.getElementById('bulkPredictionForm');
@@ -107,8 +113,13 @@ document.addEventListener("DOMContentLoaded", function() {
                             }
                         };
 
+                        // Destroy old charts if they exist
+                        if(bulkChurnChartInstance) bulkChurnChartInstance.destroy();
+                        if(bulkRiskChartInstance) bulkRiskChartInstance.destroy();
+                        if(bulkContractChartInstance) bulkContractChartInstance.destroy();
+
                         // Churn Distribution
-                        new Chart(document.getElementById('bulkChurnDistChart'), {
+                        bulkChurnChartInstance = new Chart(document.getElementById('bulkChurnDistChart'), {
                             type: 'doughnut',
                             data: {
                                 labels: data.stats.churn_dist.labels,
@@ -121,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         });
 
                         // Risk Distribution
-                        new Chart(document.getElementById('bulkRiskDistChart'), {
+                        bulkRiskChartInstance = new Chart(document.getElementById('bulkRiskDistChart'), {
                             type: 'pie',
                             data: {
                                 labels: data.stats.risk_dist.labels,
@@ -135,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                         // Contract Distribution
                         if (data.stats.contract_dist.labels.length > 0) {
-                            new Chart(document.getElementById('bulkContractChart'), {
+                            bulkContractChartInstance = new Chart(document.getElementById('bulkContractChart'), {
                                 type: 'bar',
                                 data: {
                                     labels: data.stats.contract_dist.labels,

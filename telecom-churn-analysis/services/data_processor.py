@@ -5,6 +5,39 @@ from models.customer import Customer
 
 class DataProcessor:
     @staticmethod
+    def normalize_columns(df):
+        """Centralized column normalization function."""
+        # Clean spacing and dashes
+        df.columns = [str(c).strip().replace('-', '').replace('_', '').lower() for c in df.columns]
+
+        column_mapping = {
+            'customerid': 'customer_id',
+            'gender': 'gender',
+            'seniorcitizen': 'senior_citizen',
+            'partner': 'partner',
+            'dependents': 'dependents',
+            'tenure': 'tenure',
+            'phoneservice': 'phone_service',
+            'multiplelines': 'multiple_lines',
+            'internetservice': 'internet_service',
+            'onlinesecurity': 'online_security',
+            'onlinebackup': 'online_backup',
+            'deviceprotection': 'device_protection',
+            'techsupport': 'tech_support',
+            'streamingtv': 'streaming_tv',
+            'streamingmovies': 'streaming_movies',
+            'contract': 'contract',
+            'paperlessbilling': 'paperless_billing',
+            'paymentmethod': 'payment_method',
+            'monthlycharges': 'monthly_charges',
+            'totalcharges': 'total_charges',
+            'churn': 'churn'
+        }
+
+        df.rename(columns=lambda x: column_mapping.get(x, x), inplace=True)
+        return df
+
+    @staticmethod
     def process_file(filepath):
         try:
             if filepath.endswith('.csv'):
@@ -14,50 +47,16 @@ class DataProcessor:
             else:
                 return None, "Unsupported file format"
 
-            # Normalize column names for consistency
-            column_mapping = {
-                'customerid': 'customer_id',
-                'customer_id': 'customer_id',
-                'gender': 'gender',
-                'seniorcitizen': 'senior_citizen',
-                'senior_citizen': 'senior_citizen',
-                'partner': 'partner',
-                'dependents': 'dependents',
-                'tenure': 'tenure',
-                'phoneservice': 'phone_service',
-                'phone_service': 'phone_service',
-                'multiplelines': 'multiple_lines',
-                'multiple_lines': 'multiple_lines',
-                'internetservice': 'internet_service',
-                'internet_service': 'internet_service',
-                'onlinesecurity': 'online_security',
-                'online_security': 'online_security',
-                'onlinebackup': 'online_backup',
-                'online_backup': 'online_backup',
-                'deviceprotection': 'device_protection',
-                'device_protection': 'device_protection',
-                'techsupport': 'tech_support',
-                'tech_support': 'tech_support',
-                'streamingtv': 'streaming_tv',
-                'streaming_tv': 'streaming_tv',
-                'streamingmovies': 'streaming_movies',
-                'streaming_movies': 'streaming_movies',
-                'contract': 'contract',
-                'paperlessbilling': 'paperless_billing',
-                'paperless_billing': 'paperless_billing',
-                'paymentmethod': 'payment_method',
-                'payment_method': 'payment_method',
-                'monthlycharges': 'monthly_charges',
-                'monthly_charges': 'monthly_charges',
-                'totalcharges': 'total_charges',
-                'total_charges': 'total_charges',
-                'churn': 'churn'
-            }
+            # Normalize column names using centralized function
+            df = DataProcessor.normalize_columns(df)
 
-            df.columns = [str(c).lower().strip() for c in df.columns]
-            df.rename(columns=lambda x: column_mapping.get(x, x), inplace=True)
-
-            required_columns = ['customer_id', 'tenure', 'monthly_charges', 'churn']
+            required_columns = [
+                'customer_id', 'gender', 'senior_citizen', 'partner', 'dependents',
+                'tenure', 'phone_service', 'multiple_lines', 'internet_service',
+                'online_security', 'online_backup', 'device_protection', 'tech_support',
+                'streaming_tv', 'streaming_movies', 'contract', 'paperless_billing',
+                'payment_method', 'monthly_charges', 'total_charges', 'churn'
+            ]
             missing_cols = [col for col in required_columns if col not in df.columns]
             if missing_cols:
                 return None, f"Missing required columns: {', '.join(missing_cols)}"
