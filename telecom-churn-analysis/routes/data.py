@@ -85,17 +85,3 @@ def upload():
                 flash(f'Error processing file: {summary}', 'danger')
 
     return render_template('upload.html')
-
-@data_bp.route('/data')
-def explorer():
-    page = request.args.get('page', 1, type=int)
-    search = request.args.get('search', '')
-
-    query = Customer.query
-    if search:
-        query = query.filter(Customer.customer_id.contains(search))
-
-    pagination = query.paginate(page=page, per_page=50, error_out=False)
-    customers = pagination.items
-
-    return render_template('data.html', customers=customers, pagination=pagination, search=search)

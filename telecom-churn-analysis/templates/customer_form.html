@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if customer %}Edit Customer{% else %}Add Customer{% endif %} - Telecom Churn Analysis
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            {% if customer %}
+                <i class="fas fa-user-edit text-primary"></i> Edit Customer: {{ customer.customer_id }}
+            {% else %}
+                <i class="fas fa-user-plus text-primary"></i> Add New Customer
+            {% endif %}
+        </h2>
+        <p class="text-muted">Fill out the customer information below.</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('customer.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Customers
+        </a>
+    </div>
+</div>
+
+<form method="POST" action="{% if customer %}{{ url_for('customer.update', customer_id=customer.customer_id) }}{% else %}{{ url_for('customer.create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row">
+        <!-- Section 1: Customer Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Customer ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="customer_id" required
+                               value="{{ customer.customer_id if customer else '' }}"
+                               {% if customer %}readonly{% endif %}
+                               placeholder="e.g. 1234-ABCDE">
+                        {% if customer %}
+                            <small class="text-muted">Customer ID cannot be changed after creation.</small>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Gender</label>
+                        <select class="form-select" name="gender">
+                            <option value="Male" {% if customer and customer.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if customer and customer.gender == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Senior Citizen</label>
+                        <select class="form-select" name="senior_citizen">
+                            <option value="0" {% if not customer or customer.senior_citizen == 0 %}selected{% endif %}>No (0)</option>
+                            <option value="1" {% if customer and customer.senior_citizen == 1 %}selected{% endif %}>Yes (1)</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Partner</label>
+                            <select class="form-select" name="partner">
+                                <option value="No" {% if not customer or customer.partner == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.partner == 'Yes' %}selected{% endif %}>Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Dependents</label>
+                            <select class="form-select" name="dependents">
+                                <option value="No" {% if not customer or customer.dependents == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.dependents == 'Yes' %}selected{% endif %}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Account Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-file-contract me-2 text-success"></i>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tenure (Months) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="tenure" required min="0"
+                               value="{{ customer.tenure if customer else '0' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Contract</label>
+                        <select class="form-select" name="contract">
+                            <option value="Month-to-month" {% if not customer or customer.contract == 'Month-to-month' %}selected{% endif %}>Month-to-month</option>
+                            <option value="One year" {% if customer and customer.contract == 'One year' %}selected{% endif %}>One year</option>
+                            <option value="Two year" {% if customer and customer.contract == 'Two year' %}selected{% endif %}>Two year</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Paperless Billing</label>
+                        <select class="form-select" name="paperless_billing">
+                            <option value="Yes" {% if not customer or customer.paperless_billing == 'Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if customer and customer.paperless_billing == 'No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Payment Method</label>
+                        <select class="form-select" name="payment_method">
+                            <option value="Electronic check" {% if not customer or customer.payment_method == 'Electronic check' %}selected{% endif %}>Electronic check</option>
+                            <option value="Mailed check" {% if customer and customer.payment_method == 'Mailed check' %}selected{% endif %}>Mailed check</option>
+                            <option value="Bank transfer (automatic)" {% if customer and customer.payment_method == 'Bank transfer (automatic)' %}selected{% endif %}>Bank transfer (automatic)</option>
+                            <option value="Credit card (automatic)" {% if customer and customer.payment_method == 'Credit card (automatic)' %}selected{% endif %}>Credit card (automatic)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Services -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-server me-2 text-info"></i>Services</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Phone Service</label>
+                            <select class="form-select" name="phone_service">
+                                <option value="Yes" {% if not customer or customer.phone_service == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No" {% if customer and customer.phone_service == 'No' %}selected{% endif %}>No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Multiple Lines</label>
+                            <select class="form-select" name="multiple_lines">
+                                <option value="No" {% if not customer or customer.multiple_lines == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.multiple_lines == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No phone service" {% if customer and customer.multiple_lines == 'No phone service' %}selected{% endif %}>No phone service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Internet Service</label>
+                            <select class="form-select" name="internet_service">
+                                <option value="Fiber optic" {% if not customer or customer.internet_service == 'Fiber optic' %}selected{% endif %}>Fiber optic</option>
+                                <option value="DSL" {% if customer and customer.internet_service == 'DSL' %}selected{% endif %}>DSL</option>
+                                <option value="No" {% if customer and customer.internet_service == 'No' %}selected{% endif %}>No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Online Security</label>
+                            <select class="form-select" name="online_security">
+                                <option value="No" {% if not customer or customer.online_security == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.online_security == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No internet service" {% if customer and customer.online_security == 'No internet service' %}selected{% endif %}>No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Online Backup</label>
+                            <select class="form-select" name="online_backup">
+                                <option value="No" {% if not customer or customer.online_backup == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.online_backup == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No internet service" {% if customer and customer.online_backup == 'No internet service' %}selected{% endif %}>No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Device Protection</label>
+                            <select class="form-select" name="device_protection">
+                                <option value="No" {% if not customer or customer.device_protection == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.device_protection == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No internet service" {% if customer and customer.device_protection == 'No internet service' %}selected{% endif %}>No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Tech Support</label>
+                            <select class="form-select" name="tech_support">
+                                <option value="No" {% if not customer or customer.tech_support == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.tech_support == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No internet service" {% if customer and customer.tech_support == 'No internet service' %}selected{% endif %}>No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Streaming TV</label>
+                            <select class="form-select" name="streaming_tv">
+                                <option value="No" {% if not customer or customer.streaming_tv == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.streaming_tv == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No internet service" {% if customer and customer.streaming_tv == 'No internet service' %}selected{% endif %}>No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Streaming Movies</label>
+                            <select class="form-select" name="streaming_movies">
+                                <option value="No" {% if not customer or customer.streaming_movies == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.streaming_movies == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No internet service" {% if customer and customer.streaming_movies == 'No internet service' %}selected{% endif %}>No internet service</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4 & 5: Billing and Churn -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-rupee-sign me-2 text-warning"></i>Billing & <i class="fas fa-door-open ms-2 me-2 text-danger"></i>Churn</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Monthly Charges (₹) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" name="monthly_charges" required min="0"
+                                   value="{{ customer.monthly_charges if customer else '0.00' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Total Charges (₹) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" name="total_charges" required min="0"
+                                   value="{{ customer.total_charges if customer else '0.00' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Churn Status</label>
+                            <select class="form-select" name="churn">
+                                <option value="No" {% if not customer or customer.churn == 'No' %}selected{% endif %}>No</option>
+                                <option value="Yes" {% if customer and customer.churn == 'Yes' %}selected{% endif %}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mb-5">
+        <a href="{{ url_for('customer.index') }}" class="btn btn-secondary me-2">Cancel</a>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="fas fa-save me-1"></i> {% if customer %}Save Changes{% else %}Add Customer{% endif %}
+        </button>
+    </div>
+</form>
+{% endblock %}

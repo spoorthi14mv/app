@@ -27,8 +27,8 @@
                 <li class="{% if request.endpoint == 'data.upload' %}active{% endif %}">
                     <a href="{{ url_for('data.upload') }}"><i class="fas fa-file-upload"></i> Data Upload</a>
                 </li>
-                <li class="{% if request.endpoint == 'data.explorer' %}active{% endif %}">
-                    <a href="{{ url_for('data.explorer') }}"><i class="fas fa-table"></i> Data Explorer</a>
+                <li class="{% if request.endpoint == 'customer.index' %}active{% endif %}">
+                    <a href="{{ url_for('customer.index') }}"><i class="fas fa-user-friends"></i> Customers</a>
                 </li>
                 <li class="{% if request.endpoint == 'analysis.index' %}active{% endif %}">
                     <a href="{{ url_for('analysis.index') }}"><i class="fas fa-chart-pie"></i> Churn Analysis</a>

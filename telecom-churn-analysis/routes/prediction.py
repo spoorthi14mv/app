@@ -162,24 +162,6 @@ def train_model():
         'results': result['results']
     })
 
-@prediction_bp.route('/customers')
-def customers():
-    filter_risk = request.args.get('risk', '')
-
-    query = db.session.query(Customer, Prediction).filter(
-        Customer.customer_id == Prediction.customer_id
-    )
-
-    if filter_risk:
-        query = query.filter(Prediction.risk_level == filter_risk.capitalize())
-
-    # Sort results by churn probability descending
-    query = query.order_by(Prediction.churn_probability.desc())
-
-    results = query.limit(100).all()
-
-    return render_template('customers.html', results=results, filter_risk=filter_risk.capitalize() if filter_risk else '')
-
 from sqlalchemy import func
 
 @prediction_bp.route('/segments')

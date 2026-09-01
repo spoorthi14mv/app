@@ -27,6 +27,7 @@ def create_app(config_class=Config):
     # Import and register blueprints
     from routes.dashboard import dashboard_bp
     from routes.data import data_bp
+    from routes.customer import customer_bp
     from routes.analysis import analysis_bp
     from routes.prediction import prediction_bp
     from routes.insights import insights_bp
@@ -34,6 +35,7 @@ def create_app(config_class=Config):
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(data_bp)
+    app.register_blueprint(customer_bp)
     app.register_blueprint(analysis_bp)
     app.register_blueprint(prediction_bp)
     app.register_blueprint(insights_bp)
